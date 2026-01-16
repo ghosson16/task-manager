@@ -70,6 +70,35 @@ app.post('/api/tasks', async (req, res) => {
     }
 });
 
+app.patch('/api/tasks/:id', async (req, res) => {
+    try {
+        const updatedTask = await Task.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {new: true, runValidators: true}
+        );
+        if (!updatedTask) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+        res.json(updatedTask);
+    } catch (err) {
+        res.status(500).json({ message: 'Error updating task', error: err });
+    }
+});
+
+app.delete('/api/tasks/:id', async (req, res) => {
+    try {
+        const deletedTask = await Task.findByIdAndDelete(req.params.id);
+        if (!deletedTask) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+        res.json({ message: 'Task deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Error deleting task', error: err });
+    }
+});
+
+
 /*
 ERROR HANDLING
 */
