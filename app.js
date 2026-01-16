@@ -1,17 +1,31 @@
 /*
 CONFIGURATIONS & IMPORTS
 */
+require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const app = express();
 const PORT = 3000;
+const mongoose = require('mongoose');
+const Task = require('./models/task');
 
-// Temporary in-memory store (Will be replaced by MongoDB later)
-let tasks = [
-    { id: 1, title: 'Task One', completed: false },
-    { id: 2, title: 'Task Two', completed: true },
-    { id: 3, title: 'Task Three', completed: false },
-];
+/*
+DATABASE CONNECTION
+*/
+const connectDB = async () => {
+    try {
+        await mongoose.connect(process.env.mongo_url);
+        console.log('Connected to MongoDB');
+        app.listen(PORT, () => {
+        console.log(`Server is running at http://localhost:${PORT}`);
+        });
+    } catch (err) {
+        console.error('Could not connect to MongoDB...', err);
+        process.exit(1);
+    }
+};
+
+connectDB();
 
 /*
 MIDDLEWARES
@@ -22,38 +36,40 @@ app.use(express.json());
 /*
 ROUTES
 */
-app.get('/api/tasks', (req, res) => {
-    res.json(tasks);
-});
-
-app.get('/api/tasks/:id', (req, res) => {
-    const taskId = parseInt(req.params.id);
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-        res.json(task);
-    } else {
-        res.status(404).json({ message: 'Task not found' });
+app.get('/api/tasks', async (req, res) => {
+    try {
+        const tasks = await Task.find();
+        res.json(tasks);
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching tasks', error: err });
     }
 });
 
-app.post('/api/tasks', (req, res) => {
-    const newTask = {
-        id: tasks.length + 1,
+app.get('/api/tasks/:id', async (req, res) => {
+    try {
+        const task = await Task.findById(req.params.id);
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+        res.json(task);
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching task', error: err });
+    }
+});
+
+app.post('/api/tasks', async (req, res) => {
+    try{
+        const task = new Task({
         title: req.body.title,
-        completed: false
-    };
-    tasks.push(newTask);
-    res.status(201).json(newTask);
+        completed: req.body.completed || false
+    });
+    const savedTask = await task.save();
+    res.status(201).json(savedTask);
+    } catch(err) {
+    res.status(500).json({ message: 'Error saving task', error: err });
+    }
 });
 
 /*
 ERROR HANDLING
 */
-
-
-/*
-START SERVER
-*/
-app.listen(PORT, () => {
-    console.log(`Server is running at http://localhost:${PORT}`);
-});
