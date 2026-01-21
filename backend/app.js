@@ -62,10 +62,7 @@ app.get('/api/tasks/:id', async (req, res) => {
 
 app.post('/api/tasks', async (req, res) => {
     try{
-        const task = new Task({
-        title: req.body.title,
-        completed: req.body.completed || false
-    });
+        const task = new Task(req.body);
     const savedTask = await task.save();
     res.status(201).json(savedTask);
     } catch(err) {
