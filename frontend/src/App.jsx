@@ -10,6 +10,9 @@ function App() {
   const [tasks, setTasks] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [newTitle, setNewTitle] = useState("")
+  const [priority, setPriority] = useState("low");
+  const [category, setCategory] = useState("personal");
+  const [dueDate, setDueDate] = useState("");
   const [isCompleted, setIsCompleted] = useState(false)
   const [currentTaskId, setCurrentTaskId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -30,33 +33,43 @@ function App() {
   }, [])
 
   const openEditForm = (task) => {
-    setCurrentTaskId(task._id);
-    setNewTitle(task.title);
-    setIsCompleted(task.completed);
-    setShowForm(true);
-  };
+  setCurrentTaskId(task._id);
+  setNewTitle(task.title);
+  setPriority(task.priority || "low");
+  setCategory(task.category || "personal");
+  if (task.dueDate) {
+    setDueDate(new Date(task.dueDate).toISOString().split('T')[0]);
+  } else {
+    setDueDate("");
+  }
+  setShowForm(true);
+};
 
   const closeForm = () => {
     setShowForm(false);
     setCurrentTaskId(null);
     setNewTitle("");
-    setIsCompleted(false);
+    setPriority("low");
+    setCategory("personal");
+    setDueDate("");
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
+    
+    const taskData = {
+      title: newTitle,
+      priority,
+      category,
+      dueDate: dueDate || null
+    };
+
     try {
       if (currentTaskId) {
-        const response = await axios.patch(`http://localhost:3000/api/tasks/${currentTaskId}`, {
-          title: newTitle,
-          completed: isCompleted
-        });
+        const response = await axios.patch(`http://localhost:3000/api/tasks/${currentTaskId}`, taskData);
         setTasks(tasks.map(t => t._id === currentTaskId ? response.data : t));
       } else {
-        const response = await axios.post('http://localhost:3000/api/tasks', {
-          title: newTitle,
-          completed: isCompleted
-        });
+        const response = await axios.post('http://localhost:3000/api/tasks', taskData);
         setTasks([...tasks, response.data]);
       }
       closeForm();
@@ -71,6 +84,7 @@ function App() {
       });
     } catch (error) {
       console.error('Error saving task:', error);
+      Swal.fire({ icon: 'error', title: 'Oops...', text: 'Something went wrong!' });
     }
   };
 
