@@ -1,16 +1,26 @@
 import { Trash2, Edit3, CheckCircle, Calendar, Circle } from 'lucide-react';
 
-function TaskItem({ task, deleteTask, openEditForm, toggleComplete }) {
+function TaskItem({ task, deleteTask, openEditForm, toggleComplete, filterCategory, sortBy }) {
     const priorityColors = {
         high: "bg-rose-500",
         medium: "bg-amber-500",
         low: "bg-slate-300"
     };
-    const priorityBadge = {
-        high: "bg-rose-50 text-rose-600 border-rose-100",
-        medium: "bg-amber-50 text-amber-600 border-amber-100",
-        low: "bg-slate-50 text-slate-500 border-slate-100"
+
+    const getDaysRemaining = (dateString) => {
+        if (!dateString) return null;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const due = new Date(dateString);
+        due.setHours(0, 0, 0, 0);
+        const diffTime = due - today;
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     };
+
+    const daysLeft = getDaysRemaining(task.dueDate);
+    const isUrgent = daysLeft !== null && daysLeft <= 2;
+    const shouldShowCategory = filterCategory === "all";
+    const shouldShowDate = !task.completed && task.dueDate && (sortBy === "dueDate" || isUrgent);
 
     return (
         <div className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 mb-3 ${
@@ -28,40 +38,50 @@ function TaskItem({ task, deleteTask, openEditForm, toggleComplete }) {
                     </button>
 
                     <div className="flex flex-col min-w-0">
-                        <span className={`font-bold text-base truncate transition-all ${task.completed ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
+                        <span className={`font-bold text-base truncate transition-all ${task.completed ? 'text-slate-300 line-through' : 'text-slate-700'}`}>
                             {task.title}
                         </span>
                         
-                        <div className="flex flex-wrap items-center gap-2">
-                            <span className={`text-[10px] uppercase font-black px-2 py-0.5 rounded-lg border ${priorityBadge[task.priority]}`}>
-                                {task.priority}
-                            </span>
-                            <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-500 border border-indigo-100">
-                                {task.category}
-                            </span>
-                            {task.dueDate && (
-                                <span className="text-xs text-slate-400 flex items-center gap-1 ml-1 font-medium">
-                                    <Calendar className="w-3 h-3" />
-                                    {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                </span>
-                            )}
-                        </div>
+                        {(shouldShowCategory || shouldShowDate) && (
+                            <div className="flex items-center gap-3 mt-1">
+                                {shouldShowCategory && (
+                                    <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">
+                                        {task.category}
+                                    </span>
+                                )}
+                                
+                                {shouldShowDate && (() => {
+                                    let colorClass = "text-slate-400";
+                                    let label = `${daysLeft} days left`;
+                                    
+                                    if (daysLeft === 0) {
+                                        colorClass = "text-rose-600 font-bold animate-pulse";
+                                        label = "Due Today";
+                                    } else if (daysLeft < 0) {
+                                        colorClass = "text-rose-700 font-black";
+                                        label = `Overdue (${Math.abs(daysLeft)}d)`;
+                                    } else if (isUrgent) {
+                                        colorClass = "text-rose-500 font-bold";
+                                        label = `${daysLeft}d left`;
+                                    }
+
+                                    return (
+                                        <span className={`text-[10px] flex items-center gap-1 ${colorClass}`}>
+                                            <Calendar className="w-3 h-3" />
+                                            {label}
+                                        </span>
+                                    );
+                                })()}
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <button
-                        onClick={() => openEditForm(task)}
-                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
-                        title="Edit Task"
-                    >
+                    <button onClick={() => openEditForm(task)} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all">
                         <Edit3 className="w-5 h-5" />
                     </button>
-                    <button
-                        onClick={() => deleteTask(task._id)}
-                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
-                        title="Delete Task"
-                    >
+                    <button onClick={() => deleteTask(task._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
                         <Trash2 className="w-5 h-5" />
                     </button>
                 </div>

@@ -17,6 +17,8 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [sortBy, setSortBy] = useState("priority");
+  const priorityWeight = { high: 3, medium: 2, low: 1 };
 
   const fetchTasks = async () => {
     try {
@@ -128,6 +130,20 @@ function App() {
   return matchesSearch && matchesStatus && matchesCategory;
 });
 
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
+  if (a.completed !== b.completed) return a.completed ? 1 : -1;
+
+  if (sortBy === "priority") {
+    if (a.priority !== b.priority) return priorityWeight[b.priority] - priorityWeight[a.priority];
+    return (new Date(a.dueDate || '9999') - new Date(b.dueDate || '9999'));
+  } else {
+    const dateA = new Date(a.dueDate || '9999');
+    const dateB = new Date(b.dueDate || '9999');
+    if (dateA - dateB !== 0) return dateA - dateB;
+    return priorityWeight[b.priority] - priorityWeight[a.priority];
+  }
+});
+
   const toggleComplete = async (task) => {
   try {
     const response = await axios.patch(`http://localhost:3000/api/tasks/${task._id}`, {
@@ -142,7 +158,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-200 flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-3xl shadow-xl shadow-slate-300/50 max-w-md w-full">
+      <div className="bg-white p-8 rounded-3xl shadow-xl shadow-slate-300/50 max-w-xl w-full">
         
         <h1 className="text-3xl font-black text-slate-800 mb-8 flex items-center gap-2">
           Task List
@@ -158,16 +174,36 @@ function App() {
           setFilterCategory={setFilterCategory}
           />
           
+          <div className="flex justify-between items-center mb-4 px-1">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Sort by:</span>
+            <div className="flex bg-slate-100 p-1 rounded-xl">
+              <button
+              onClick={() => setSortBy("priority")}
+              className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${sortBy === 'priority' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'}`}
+              >
+                Priority
+              </button>
+              <button
+              onClick={() => setSortBy("dueDate")}
+              className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${sortBy === 'dueDate' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'}`}
+              >
+                Deadline
+              </button>
+            </div>
+          </div>
+          
           {tasks.length === 0 ? (
             <div className="text-center py-10 text-slate-400 italic">No tasks yet. Start by adding one!</div>
           ) : (
-            filteredTasks.map((task) => (
+            sortedTasks.map((task) => (
               <TaskItem
               key={task._id}
               task={task}
               deleteTask={deleteTask}
               openEditForm={openEditForm}
               toggleComplete={toggleComplete}
+              filterCategory={filterCategory}
+              sortBy={sortBy}
               />
             ))
           )}
