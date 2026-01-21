@@ -1,6 +1,13 @@
-import { X } from 'lucide-react';
+import { X, Calendar, Tag, AlertCircle } from 'lucide-react';
 
-function TaskModal({ currentTaskId, newTitle, setNewTitle, isCompleted, setIsCompleted, handleSave, closeForm}) {
+function TaskModal({
+    currentTaskId,
+    newTitle, setNewTitle,
+    priority, setPriority,
+    category, setCategory,
+    dueDate, setDueDate,
+    handleSave, closeForm
+}) {
     return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md p-8 animate-in fade-in zoom-in duration-300">
@@ -16,26 +23,57 @@ function TaskModal({ currentTaskId, newTitle, setNewTitle, isCompleted, setIsCom
             <form onSubmit={handleSave} className="flex flex-col text-left">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Task Title</label>
                 <input
-                type="text"
-                required
-                autoFocus
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="What are you planning?"
-                className="bg-slate-50 border-none rounded-2xl px-5 py-4 mb-6 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 text-lg"
+                    type="text"
+                    required
+                    autoFocus
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="What are you planning?"
+                    className="bg-slate-50 border-none rounded-2xl px-5 py-4 mb-6 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 text-lg"
                 />
-                
-                <div className="flex items-center gap-3 mb-8 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <input
-                    type="checkbox"
-                    id="taskStatus"
-                    checked={isCompleted}
-                    onChange={(e) => setIsCompleted(e.target.checked)}
-                    className="w-6 h-6 accent-indigo-600 rounded-lg cursor-pointer"
-                    />
-                    <label htmlFor="taskStatus" className="font-bold text-slate-600 cursor-pointer select-none">
-                    I've completed this task
+
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="flex flex-col">
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" /> Priority
+                        </label>
+                        <select 
+                            value={priority}
+                            onChange={(e) => setPriority(e.target.value)}
+                            className="bg-slate-50 border-none rounded-2xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-600 font-medium cursor-pointer"
+                        >
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 flex items-center gap-1">
+                            <Tag className="w-3 h-3" /> Category
+                        </label>
+                        <select
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
+                            className="bg-slate-50 border-none rounded-2xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-600 font-medium cursor-pointer"
+                        >
+                            <option value="personal">Personal</option>
+                            <option value="work">Work</option>
+                            <option value="study">Study</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div className="flex flex-col mb-8">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 flex items-center gap-1">
+                        <Calendar className="w-3 h-3" /> Due Date
                     </label>
+                    <input
+                        type="date"
+                        value={dueDate}
+                        onChange={(e) => setDueDate(e.target.value)}
+                        className="bg-slate-50 border-none rounded-2xl px-5 py-3 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-600 font-medium"
+                    />
                 </div>
 
                 <div className="flex gap-3">
