@@ -16,6 +16,7 @@ function App() {
   const [currentTaskId, setCurrentTaskId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
 
   const fetchTasks = async () => {
     try {
@@ -117,13 +118,15 @@ function App() {
   }
 
   const filteredTasks = tasks.filter((task) => {
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      filterStatus === "all" ? true :
-      filterStatus === "completed" ? task.completed : !task.completed;
-      
-    return matchesSearch && matchesStatus;
-  });
+  const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+  const matchesStatus =
+    filterStatus === "all" ? true :
+    filterStatus === "completed" ? task.completed : !task.completed;
+  const matchesCategory =
+    filterCategory === "all" ? true : task.category === filterCategory;
+
+  return matchesSearch && matchesStatus && matchesCategory;
+});
 
   const toggleComplete = async (task) => {
   try {
@@ -147,11 +150,14 @@ function App() {
 
         <div className="space-y-4 mb-8">
           <TaskFilters
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            filterStatus={filterStatus}
-            setFilterStatus={setFilterStatus}
-            />
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filterStatus={filterStatus}
+          setFilterStatus={setFilterStatus}
+          filterCategory={filterCategory}
+          setFilterCategory={setFilterCategory}
+          />
+          
           {tasks.length === 0 ? (
             <div className="text-center py-10 text-slate-400 italic">No tasks yet. Start by adding one!</div>
           ) : (
