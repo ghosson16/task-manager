@@ -13,7 +13,6 @@ function App() {
   const [priority, setPriority] = useState("low");
   const [category, setCategory] = useState("personal");
   const [dueDate, setDueDate] = useState("");
-  const [isCompleted, setIsCompleted] = useState(false)
   const [currentTaskId, setCurrentTaskId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -126,6 +125,18 @@ function App() {
     return matchesSearch && matchesStatus;
   });
 
+  const toggleComplete = async (task) => {
+  try {
+    const response = await axios.patch(`http://localhost:3000/api/tasks/${task._id}`, {
+      completed: !task.completed
+    });
+    setTasks(tasks.map(t => t._id === task._id ? response.data : t));
+  } catch (error) {
+    console.error("Error updating status:", error);
+    Swal.fire({ icon: 'error', title: 'Oops...', text: 'Failed to update task status' });
+  }
+};
+
   return (
     <div className="min-h-screen bg-slate-200 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-3xl shadow-xl shadow-slate-300/50 max-w-md w-full">
@@ -150,6 +161,7 @@ function App() {
               task={task}
               deleteTask={deleteTask}
               openEditForm={openEditForm}
+              toggleComplete={toggleComplete}
               />
             ))
           )}
@@ -167,8 +179,12 @@ function App() {
           currentTaskId={currentTaskId}
           newTitle={newTitle}
           setNewTitle={setNewTitle}
-          isCompleted={isCompleted}
-          setIsCompleted={setIsCompleted}
+          priority={priority}
+          setPriority={setPriority}
+          category={category}
+          setCategory={setCategory}
+          dueDate={dueDate}
+          setDueDate={setDueDate}
           handleSave={handleSave}
           closeForm={closeForm}
           />
