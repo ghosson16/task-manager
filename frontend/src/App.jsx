@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Trash2, Edit3, CheckCircle, Plus, X } from 'lucide-react';
+import {Plus} from 'lucide-react';
 import Swal from 'sweetalert2'
+import TaskItem from './components/TaskItem';
+import TaskModal from './components/TaskModal';
+import TaskFilters from './components/TaskFilters';
 
 function App() {
   const [tasks, setTasks] = useState([])
@@ -9,6 +12,8 @@ function App() {
   const [newTitle, setNewTitle] = useState("")
   const [isCompleted, setIsCompleted] = useState(false)
   const [currentTaskId, setCurrentTaskId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   const fetchTasks = async () => {
     try {
@@ -96,6 +101,15 @@ function App() {
     })
   }
 
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      filterStatus === "all" ? true :
+      filterStatus === "completed" ? task.completed : !task.completed;
+      
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <div className="min-h-screen bg-slate-200 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-3xl shadow-xl shadow-slate-300/50 max-w-md w-full">
@@ -105,34 +119,22 @@ function App() {
         </h1>
 
         <div className="space-y-4 mb-8">
+          <TaskFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
+            />
           {tasks.length === 0 ? (
             <div className="text-center py-10 text-slate-400 italic">No tasks yet. Start by adding one!</div>
           ) : (
-            tasks.map((task) => (
-              <div
-                key={task._id}
-                className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 min-h-[70px] flex items-center ${
-                  task.completed ? 'border-green-200 bg-green-50/50' : 'border-slate-100 bg-slate-50 shadow-sm'
-                }`}
-              >
-                <div className="w-full p-5 flex justify-between items-center transition-all duration-300 group-hover:opacity-0">
-                  <span className={`font-semibold text-lg ${task.completed ? 'text-green-600 line-through' : 'text-slate-700'}`}>
-                    {task.title}
-                  </span>
-                  {task.completed && <CheckCircle className="text-green-500 w-6 h-6" />}
-                </div>
-
-                <div className="absolute inset-0 flex opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                  <button onClick={() => openEditForm(task)} className="flex-1 bg-cyan-500 text-white flex items-center justify-center gap-2 hover:bg-cyan-600 transition-colors">
-                    <Edit3 className="w-5 h-5" />
-                    <span className="font-bold">Edit</span>
-                  </button>
-                  <button onClick={() => deleteTask(task._id)} className="flex-1 bg-rose-500 text-white flex items-center justify-center gap-2 hover:bg-rose-600 transition-colors">
-                    <Trash2 className="w-5 h-5" />
-                    <span className="font-bold">Delete</span>
-                  </button>
-                </div>
-              </div>
+            filteredTasks.map((task) => (
+              <TaskItem
+              key={task._id}
+              task={task}
+              deleteTask={deleteTask}
+              openEditForm={openEditForm}
+              />
             ))
           )}
         </div>
