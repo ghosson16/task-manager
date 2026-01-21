@@ -1,4 +1,4 @@
-import { X, Plus } from 'lucide-react';
+import { X } from 'lucide-react';
 
 function TaskModal({ currentTaskId, newTitle, setNewTitle, isCompleted, setIsCompleted, handleSave, closeForm}) {
     return (

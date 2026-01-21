@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Trash2, Edit3, CheckCircle, Plus, X } from 'lucide-react';
+import {Plus} from 'lucide-react';
 import Swal from 'sweetalert2'
 import TaskItem from './components/TaskItem';
 import TaskModal from './components/TaskModal';
+import TaskFilters from './components/TaskFilters';
 
 function App() {
   const [tasks, setTasks] = useState([])
@@ -11,6 +12,8 @@ function App() {
   const [newTitle, setNewTitle] = useState("")
   const [isCompleted, setIsCompleted] = useState(false)
   const [currentTaskId, setCurrentTaskId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   const fetchTasks = async () => {
     try {
@@ -100,6 +103,15 @@ function App() {
     })
   }
 
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      filterStatus === "all" ? true :
+      filterStatus === "completed" ? task.completed : !task.completed;
+      
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <div className="min-h-screen bg-slate-200 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-3xl shadow-xl shadow-slate-300/50 max-w-md w-full">
@@ -109,10 +121,16 @@ function App() {
         </h1>
 
         <div className="space-y-4 mb-8">
+          <TaskFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
+            />
           {tasks.length === 0 ? (
             <div className="text-center py-10 text-slate-400 italic">No tasks yet. Start by adding one!</div>
           ) : (
-            tasks.map((task) => (
+            filteredTasks.map((task) => (
               <TaskItem
               key={task._id}
               task={task}
